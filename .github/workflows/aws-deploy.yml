@@ -1,0 +1,28 @@
+name: AWS Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Installer Ansible
+        run: sudo apt-get update && sudo apt-get install -y ansible
+
+      - name: Créer le fichier de clé SSH
+        run: echo "${{ secrets.AWS_SSH_KEY }}" > aws_key.pem
+
+      - name: Donner les bons droits à la clé
+        run: chmod 400 aws_key.pem
+
+      - name: Déploiement avec Ansible
+        run: ansible-playbook -i inventory_aws.ini deploy.yml
+
+      - name: Supprimer la clé après usage
+        run: rm -f aws_key.pem
