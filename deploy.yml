@@ -10,8 +10,14 @@
 
     - name: Déployer la page
       copy:
-        src: ./index.html
         dest: /usr/share/nginx/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          <!doctype html>
+          <html><head><meta charset="utf-8"><title>TodoApp AWS</title></head>
+          <body><h1>Déployé via GitHub Actions + Ansible 🚀</h1></body></html>
 
     - name: Activer et démarrer nginx
       systemd:
