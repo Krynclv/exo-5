@@ -1,28 +1,34 @@
 name: AWS Deploy
-
 on:
   push:
     branches: [ main ]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Installer Ansible
-        run: sudo apt-get update && sudo apt-get install -y ansible
+      - name: Install Ansible
+        run: sudo apt-get update && sudo apt-get install -y ansible openssh-client
 
-      - name: Créer le fichier de clé SSH
+      - name: Write SSH key
         run: echo "${{ secrets.AWS_SSH_KEY }}" > aws_key.pem
 
-      - name: Donner les bons droits à la clé
+      - name: Fix perms
         run: chmod 400 aws_key.pem
 
-      - name: Déploiement avec Ansible
+      - name: Prime known_hosts
+        shell: bash
+        run: |
+          IP=$(awk '/^\[aws\]/{getline; print $1}' inventory_aws.ini)
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "$IP" >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
         run: ansible-playbook -i inventory_aws.ini deploy.yml
 
-      - name: Supprimer la clé après usage
+      - name: Cleanup
         run: rm -f aws_key.pem
