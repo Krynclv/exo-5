@@ -3,12 +3,18 @@
   become: true
   tasks:
     - name: Installer nginx
-      apt:
+      yum:
         name: nginx
         state: present
         update_cache: yes
 
-    - name: Copier l'application
+    - name: Déployer la page
       copy:
         src: ./index.html
-        dest: /var/www/html/index.html
+        dest: /usr/share/nginx/html/index.html
+
+    - name: Activer et démarrer nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: true
